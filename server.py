@@ -1,11 +1,33 @@
 import ssl
 import socket
-import datetime
+from datetime import datetime
+import logging
 import time
 import traceback
 from urllib import parse
-from skyron import settings
+from skyron import settings, VERSION
 from skyron.gemini import GeminiRequest, GeminiResponse, GeminiException
+import sys
+
+# create logger
+logger = logging.getLogger('skyron')
+logger.setLevel(logging.DEBUG)
+
+# create console handler and set level to debug
+ch = logging.StreamHandler()
+ch.setLevel(logging.DEBUG)
+
+# create formatter
+formatter = logging.Formatter('%(asctime)s\t%(levelname)s\t%(message)s')
+
+# add formatter to ch
+ch.setFormatter(formatter)
+
+# add ch to logger
+logger.addHandler(ch)
+
+#logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
+
 
 # Create a server socket 
 serverSocket = socket.socket()
@@ -14,7 +36,7 @@ serverSocket.bind((settings['HOST'], settings['PORT']))
 
 # Listen for incoming connections
 serverSocket.listen()
-print(f"Server listening at {settings['HOST']}:{settings['PORT']}")
+print(f"\r\nSkyron {VERSION} is now listening at {settings['HOST']}:{settings['PORT']}.\r\n")
 
 while(True):
     # Keep accepting connections from clients
@@ -36,13 +58,13 @@ while(True):
         response = req.dispatch()
         secureClientSocket.send(response.header)
         if response.body is not None:
+            logger.info(f"{response.status}\t{url}")
             secureClientSocket.sendall(response.body)
-        #secureClientSocket.shutdown()
         secureClientSocket.close()
 
     except GeminiException as e:
         response = e.response()
         secureClientSocket.sendall(response.header)
-        #secureClientSocket.shutdown()
+        logger.error(f"\t{response.status}\t{url}")
         secureClientSocket.close()
     

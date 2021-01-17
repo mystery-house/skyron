@@ -5,6 +5,8 @@ import inspect
 import os
 import yaml
 
+VERSION = "0.1"
+
 def load_settings():
     settings_file = os.getenv('SKYRON_SETTINGS_FILE')
     if settings_file is None:

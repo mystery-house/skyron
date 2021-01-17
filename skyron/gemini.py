@@ -40,6 +40,10 @@ class GeminiResponse:
         self._meta = meta
 
     @property
+    def status(self):
+        return self._status
+
+    @property
     def header(self):
         response_header = self._status
         if self._meta is not None:
@@ -149,8 +153,3 @@ class GeminiRequest:
         data, mime_type = self._get_body(self.resource_path)
         
         return GeminiResponse(20, data, meta=mime_type)       
-
-    def index(self):
-        """
-        Attempts to generate an index of the contents of a given directory.
-        """
