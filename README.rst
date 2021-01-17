@@ -6,8 +6,8 @@ Skyron is a straightforward `Gemini <https://gemini.circumlunar.space/>`_
 Server that serves static files over a secure SSL/TLS connection.
 
 The code in its current state was hacked together in a day, has not been 
- tested, is not multi-threaded, and is generally not recommended for use in 
- anything resembling a production environment.
+tested, is not multi-threaded, and is generally not recommended for use in 
+anything resembling a production environment.
 
 Requirements
 ############
@@ -20,7 +20,7 @@ route you'll still need a Certificate Authority. `This guide <https://deliciousb
 will walk you through the entire process. If you already have a server with a 
 domain pointed at it, you might consider just `using Letsencrypt <https://www.digitalocean.com/community/tutorials/how-to-use-certbot-standalone-mode-to-retrieve-let-s-encrypt-ssl-certificates-on-ubuntu-16-04>`
 to get a real certificate. (And if you already have an SSL certificate for a
- web site on that server, you can just use that.)
+web site on that server, you can just use that.)
 
 Setup
 #####
