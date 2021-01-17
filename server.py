@@ -26,17 +26,14 @@ ch.setFormatter(formatter)
 # add ch to logger
 logger.addHandler(ch)
 
-#logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
-
-
 # Create a server socket 
 serverSocket = socket.socket()
 serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-serverSocket.bind((settings['HOST'], settings['PORT']))
+serverSocket.bind((settings['BIND'], settings['PORT']))
 
 # Listen for incoming connections
 serverSocket.listen()
-print(f"\r\nSkyron {VERSION} is now listening at {settings['HOST']}:{settings['PORT']}.\r\n")
+print(f"\r\nSkyron {VERSION} is now listening at {settings['BIND']}:{settings['PORT']}.\r\n")
 
 while(True):
     # Keep accepting connections from clients
@@ -50,7 +47,6 @@ while(True):
                                         keyfile="/etc/letsencrypt/live/banjo.town/privkey.pem", 
                                         cert_reqs=ssl.CERT_NONE,
                                         ssl_version=ssl.PROTOCOL_TLSv1_2)
-
 
     url = secureClientSocket.recv(1024).rstrip().decode('UTF-8')
     try:

@@ -85,8 +85,10 @@ class GeminiRequest:
         if url_info.scheme != 'gemini':
             raise GeminiException(59, f"URL schema `{url_info.scheme}` is not supported")
 
-        # TODO use netloc to determine document root as configured in settings.yaml; try default first, then virtual_hosts, then raise exception if it host is not defined
-        # TODO if user directories are enabled, expand the '/~username' portion of the path to the system $HOME/username
+        # TODO use netloc to determine document root for host as configured in settings.yaml; 
+        #      try default first, then virtual_hosts, then raise exception if it host is not defined
+        # TODO if user directories are enabled, expand the '/~username' portion of the path to the 
+        #      system $HOME/username
         self.host = url_info.netloc
         self.path = url_info.path
 
@@ -130,7 +132,7 @@ class GeminiRequest:
             # If the result is a directory, check whether there's an index file
             index_path = f"{resource_path}{os.path.sep}{settings['INDEX_FILE']}"
             if os.path.exists(index_path):
-                with open(index_path, 'rb') as f:
+                with open(index_path, 'rb') as f:                    
                     data = f.read()
                     return data, 'text/gemini'
             elif settings['AUTO_INDEX']:
