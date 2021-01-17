@@ -128,7 +128,7 @@ class GeminiRequest:
                 return data, self.resource_mime_type
         except IsADirectoryError as e:
             # If the result is a directory, check whether there's an index file
-            index_path = f"{resource_path}{settings['INDEX_FILE']}"
+            index_path = f"{resource_path}{os.path.sep}{settings['INDEX_FILE']}"
             if os.path.exists(index_path):
                 with open(index_path, 'rb') as f:
                     data = f.read()
