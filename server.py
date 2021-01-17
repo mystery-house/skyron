@@ -5,20 +5,11 @@ import time
 import traceback
 from urllib import parse
 from skyron import settings
-from skyron.gemini import GeminiRequest, GeminiResponse
-
-
-req = GeminiRequest('gemini://0.0.0.0/index.gmi')
-
-
-
-
-HOST   = "127.0.0.1"
-PORT        = 1965
-DOC_ROOT = '/home/skyron/skyron-dev/gmi_docs'
+from skyron.gemini import GeminiRequest, GeminiResponse, GeminiException
 
 # Create a server socket 
 serverSocket = socket.socket()
+serverSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 serverSocket.bind((settings['HOST'], settings['PORT']))
 
 # Listen for incoming connections
@@ -38,10 +29,20 @@ while(True):
                                         cert_reqs=ssl.CERT_NONE,
                                         ssl_version=ssl.PROTOCOL_TLSv1_2)
 
+
     url = secureClientSocket.recv(1024).rstrip().decode('UTF-8')
-    req = GeminiRequest(url)
-    response = req.handle()
-    secureClientSocket.send(response.header)
-    secureClientSocket.sendall(response.body)
-    secureClientSocket.close()
+    try:
+        req = GeminiRequest(url)
+        response = req.dispatch()
+        secureClientSocket.send(response.header)
+        if response.body is not None:
+            secureClientSocket.sendall(response.body)
+        #secureClientSocket.shutdown()
+        secureClientSocket.close()
+
+    except GeminiException as e:
+        response = e.response()
+        secureClientSocket.sendall(response.header)
+        #secureClientSocket.shutdown()
+        secureClientSocket.close()
     

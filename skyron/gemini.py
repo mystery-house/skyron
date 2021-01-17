@@ -53,7 +53,7 @@ class GeminiResponse:
 
 class GeminiException(Exception):
     
-    def __init__(self, code, meta="No further information provided."):
+    def __init__(self, code, meta=None):
         self.code = code
         self.meta = meta
 
@@ -61,7 +61,11 @@ class GeminiException(Exception):
         return f"<GeminiException: {self.code} {STATUSES[self.code]}>"        
 
     def response(self):
-        return GeminiResponse(self.code, STATUSES[self.code])
+        if self.meta is not None:
+            response_meta = self.meta
+        else:
+            response_meta = STATUSES[self.code]
+        return GeminiResponse(self.code, meta=response_meta)
         
 
 class GeminiRequest:
@@ -69,12 +73,14 @@ class GeminiRequest:
     url = None
     host = None
     path = None
+    is_index = False
 
     def __init__(self, *args):
         self.url = args[0]
         url_info = parse.urlparse(args[0])
         if url_info.scheme != 'gemini':
             raise GeminiException(59, f"URL schema `{url_info.scheme}` is not supported")
+
         # TODO use netloc to determine document root as configured in settings.yaml; try default first, then virtual_hosts, then raise exception if it host is not defined
         # TODO if user directories are enabled, expand the '/~username' portion of the path to the system $HOME/username
         self.host = url_info.netloc
@@ -96,15 +102,55 @@ class GeminiRequest:
         mime_type = mimetypes.guess_type(self.resource_filename)
         return mime_type[0]
 
-    def handle(self):
+    def _get_index(self, index_path):
+        """
+        Builds Gemini markup listing and linking to all of the files in the given path.
+        """
+        files = os.listdir(index_path)  
+        index = [f"# Index of {self.path}\r\n"]              
+        for f in files:
+            index.append(f"=> {self.path}{f} {f}")
+        index = "\r\n".join(index) + "\r\n" 
+        return index
+
+    def _get_body(self, resource_path):
+        """
+        Load requested content or build file listings
+        """
+        try:
+            # If resource_path is a file, load its contents and return it
+            with open(self.resource_path, 'rb') as f:
+                data = f.read()
+                return data, self.resource_mime_type
+        except IsADirectoryError as e:
+            # If the result is a directory, check whether there's an index file
+            index_path = f"{resource_path}{settings['INDEX_FILE']}"
+            if os.path.exists(index_path):
+                with open(index_path, 'rb') as f:
+                    data = f.read()
+                    return data, 'text/gemini'
+            elif settings['AUTO_INDEX']:
+            # If there's no index file and AUTO_INDEX is enabled, get a file list, build index markup, and return it         
+                index = self._get_index(resource_path)
+                return index.encode("UTF-8"), 'text/gemini'
+            else:
+                # If there's no index file and AUTO_INDEX is NOT enabled, raise a not found exception.
+                raise GeminiException(51, f"No index found")
+
+    def dispatch(self):
         """
         Handle the request. Attempts to load the requested resource and return a GeminiResponse object.
         """
+        # TODO resolve document root based on host
+
         if not os.path.exists(self.resource_path):
             raise GeminiException(51, meta=f"`{self.path}` Not Found")
-        try:
-            with open(self.resource_path, 'rb') as f:
-                data = f.read()
-            return GeminiResponse(20, data, meta=self.resource_mime_type)
-        except PermissionError as e:
-            raise GeminiException(50, meta="Permission Denied")
+        
+        data, mime_type = self._get_body(self.resource_path)
+        
+        return GeminiResponse(20, data, meta=mime_type)       
+
+    def index(self):
+        """
+        Attempts to generate an index of the contents of a given directory.
+        """
