@@ -4,7 +4,9 @@ Skyron: A Python Gemini Server
 
 **August 2022**
 
-This repository is no longer maintained. Future updates, if any, can be found [here](https://code.mysteryhouse.studio/andy/skyron).
+This repository is no longer maintained. Future updates, if any, can be found `here <https://code.mysteryhouse.studio/andy/skyron>`_.
+
+....
 
 Skyron is a straightforward `Gemini <https://gemini.circumlunar.space/>`_ 
 Server that serves static files over a secure SSL/TLS connection.
